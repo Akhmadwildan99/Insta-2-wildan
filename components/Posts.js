@@ -9,7 +9,7 @@ const posts = [
         captions: 'THIS IS DOPE'
     },
     {
-        id: '123',
+        id: '124',
         username: 'Akhmad',
         userImg: 'https://links.papareact.com/3ke',
         img: 'https://links.papareact.com/3ke',
