@@ -7,7 +7,7 @@ import {
     HomeIcon,
     PaperAirplaneIcon,
     MenuIcon
-} from '@heroicons/react/solid'
+} from '@heroicons/react/outline'
 
 function Header() {
     return (
