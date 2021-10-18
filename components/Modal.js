@@ -1,14 +1,55 @@
 import {useRecoilState} from 'recoil';
+import {useSession} from 'next-auth/react';
 import {modalState} from '../atoms/modalAtoms';
 import {Dialog, Transition} from '@headlessui/react';
 import {Fragment, useRef, useState} from 'react';
-import {CameraIcon} from '@heroicons/react/outline'
+import {CameraIcon} from '@heroicons/react/outline';
+import {db, storage} from '../firebase';
+import {addDoc, collection, doc, serverTimestamp ,updateDoc} from '@firebase/firestore'
+import {ref, uploadString, getDownloadURL} from '@firebase/storage'
 
 function Modal() {
+    const {data: session} = useSession();
     const [open, setOpen] = useRecoilState(modalState);
     const filePickerRef = useRef(null);
     const captionsRef = useRef(null);
     const [selectedFile, setSelectedFile] = useState();
+    const [loading, setLoading] = useState(false);
+
+    const uploadPost = async() => {
+        if(loading) return;
+
+        setLoading(true);
+
+        //1) upload data to firestore
+        //2) get new Id collection
+        //3)upload image to storage using new Id collection that we get before 
+        //4)update firestore collection to adding the image field with url image from storege
+
+        const docRef = await addDoc(collection(db, 'post'), {
+            username: session.user.username,
+            profileImg: session.user.image,
+            caption: captionsRef.current.value,
+            timeStamp: serverTimestamp()
+        });
+
+        console.log('new ID', docRef.id);
+
+        const imageRef =  ref(storage, `post/${docRef.id}/image`);
+
+        await uploadString(imageRef, selectedFile, "data_url").then(async snapshot => {
+            const downlodUrl = await getDownloadURL(imageRef);
+
+            await updateDoc(doc(db, 'post', docRef.id), {
+                image: downlodUrl,
+            })
+        });
+
+        setLoading(false);
+        setOpen(false)
+        setSelectedFile(null);
+
+    }
 
     const addImageToPost = (e) => {
         const reader = new FileReader();
@@ -88,11 +129,13 @@ function Modal() {
                                 </div>
                                 <div className="mt-5 sm:mt-6">
                                     <button 
+                                    disabled={!selectedFile}
                                     type="button"
                                     className="inline-flex justify-center w-full rounded-md border border-transparent shadow-sm px-4 py-2 text-base font-medium focus:ring-2 focus:ring-offset-2 bg-red-600 focus:outline-none focus:ring-red-500 
                                     focus:bg-red-700 sm:text-sm disabled:bg-gray-300 disabled:cursor-not-allowed hover:disabled:bg-gray-300"
+                                    onClick={uploadPost}
                                     >
-                                        Upload post
+                                       {loading ? "loading..." : "upload post"}
                                     </button>
                                 </div>
                             </div>
