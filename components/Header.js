@@ -15,8 +15,9 @@ import {modalState} from '../atoms/modalAtoms'
 
 function Header() {
     const {data: session} = useSession();
-    const [open, setOpen] = useRecoilState(modalState)
+    const [open, setOpen] = useRecoilState(modalState);
     const router = useRouter();
+    console.log(session)
     return (
         <div className="shadow-sm border-b bg-white sticky top-0 z-50">
             <div className="flex justify-between max-w-6xl mx-5 lg:mx-auto">
@@ -69,7 +70,7 @@ function Header() {
                     <img 
                     onClick={signOut}
                     src={session.user.image}
-                    alt="profilw picture"
+                    alt="profile picture"
                     className="h-10 rounded-full cursor-pointer" />
                     </>
                 ) : (
