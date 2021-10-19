@@ -1,4 +1,4 @@
-import {useState} from 'react';
+import {useState, useEffect} from 'react';
 import {
     BookmarkIcon,
     ChatIcon,
@@ -8,14 +8,29 @@ import {
     PaperAirplaneIcon
 } from '@heroicons/react/outline';
 import {useSession} from 'next-auth/react';
-import { addDoc, collection, serverTimestamp } from "@firebase/firestore";
+import { addDoc, setDoc , doc, collection, serverTimestamp, query, onSnapshot, orderBy } from "@firebase/firestore";
 import { db } from "../firebase";
+// import Moment from 'react-moment';
 
 function Post({ id, username, userImg, img, captions}) {
     const {data: session} = useSession();
     const [comment, setComment] = useState("");
-    console.log(id);
+    const [comments, setComments] = useState([]);
+    const [likes, setLikes] = useState([]);
 
+    useEffect(
+        () =>
+          onSnapshot(collection(db, 'post', id, 'likes' ),
+               snapshot => setLikes(snapshot.docs)
+            ),
+        [db, id]
+    )
+
+    const likePost = async () => {
+        await setDoc(doc(db, 'post', id, 'likes', session.user.uid), {
+            username: session.user.username
+        })
+    }
 
     const sendComment = async (e) => {
         e.preventDefault();
@@ -28,10 +43,19 @@ function Post({ id, username, userImg, img, captions}) {
             username: session.user.username,
             userImg: session.user.image,
             timeStamp: serverTimestamp()
-        })
-
-        
+        })   
     }
+
+    useEffect(
+        () =>
+         onSnapshot(
+             query(
+                 collection(db, 'post', id, 'comments'), orderBy('timeStamp', 'desc')),
+                  snapshot => setComments(snapshot.docs)
+                  ),
+            [db, id]
+        );
+
     return (
         <div className="bg-white my-7 border rounded-sm">
             {/* Header */}
@@ -48,7 +72,7 @@ function Post({ id, username, userImg, img, captions}) {
             {session && (
                 <div className="flex justify-between px-4 pt-4">
                     <div className="flex space-x-4">
-                        <HeartIcon className="btn"/>
+                        <HeartIcon onClick={likePost} className="btn"/>
                         <ChatIcon className="btn" />
                         <PaperAirplaneIcon className="btn" />
                     </div>
@@ -63,6 +87,23 @@ function Post({ id, username, userImg, img, captions}) {
             </p>
 
             {/* Comments */}
+            {comments.length > 0 && (
+                <div className="ml-10 h-20 overflow-y-scroll scrollbar-thumb-black scrollbar-thin">
+                    {comments.map((comment) =>(
+                        <div key= {comment.id} className="flex items-center space-x-2 mb-3">
+                            <img className="h-7 rounded-full" src={comment.data().userImg} alt="" />
+                            <p className="text-sm flex-1">
+                                <span className="font-bold">{comment.data().username}</span>
+                                {" "}
+                                {comment.data().comment}
+                            </p>
+                            {/* <Moment fromNow>
+                                {comment.data().timeStamp?.toDate()}
+                            </Moment> */}
+                        </div>
+                    ))}
+                </div>
+            )}
 
             {/* Input box */}
             {session && (
