@@ -22,18 +22,19 @@ import { db } from "../firebase";
 function Posts() {
     const [posts, setPosts] = useState([]);
 
-    useEffect(() => {
-        onSnapshot(query(collection(db, "post"), orderBy("timeStamp", "desc")), snapshot => {
+    useEffect(() => 
+        onSnapshot(query(collection(db, "post"), orderBy("timeStamp", "desc")),( snapshot) => {
             setPosts(snapshot.docs);
-        });
-    }, [db]);
- 
+        })
+    , [db]);
+   
     return (
         <div>
             {posts.map((post) => {
                 return (
                     <Post 
                     key={post.id} 
+                    id={post.id}
                     username={post.data().username}
                     userImg={post.data().profileImg}
                     captions={post.data().caption}

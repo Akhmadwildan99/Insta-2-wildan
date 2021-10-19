@@ -1,3 +1,4 @@
+import {useState} from 'react';
 import {
     BookmarkIcon,
     ChatIcon,
@@ -6,9 +7,31 @@ import {
     HeartIcon,
     PaperAirplaneIcon
 } from '@heroicons/react/outline';
+import {useSession} from 'next-auth/react';
+import { addDoc, collection, serverTimestamp } from "@firebase/firestore";
+import { db } from "../firebase";
+
+function Post({ id, username, userImg, img, captions}) {
+    const {data: session} = useSession();
+    const [comment, setComment] = useState("");
+    console.log(id);
 
 
-function Post({id, username, userImg, img, captions}) {
+    const sendComment = async (e) => {
+        e.preventDefault();
+
+        const commenCurrent = comment;
+        setComment("")
+
+        await addDoc(collection(db, 'post', id, 'comments'), { 
+            comment: commenCurrent,
+            username: session.user.username,
+            userImg: session.user.image,
+            timeStamp: serverTimestamp()
+        })
+
+        
+    }
     return (
         <div className="bg-white my-7 border rounded-sm">
             {/* Header */}
@@ -22,14 +45,16 @@ function Post({id, username, userImg, img, captions}) {
             <img src={img} className="object-cover w-full  " alt="" />
 
             {/* Button */}
-            <div className="flex justify-between px-4 pt-4">
-                <div className="flex space-x-4">
-                    <HeartIcon className="btn"/>
-                    <ChatIcon className="btn" />
-                    <PaperAirplaneIcon className="btn" />
+            {session && (
+                <div className="flex justify-between px-4 pt-4">
+                    <div className="flex space-x-4">
+                        <HeartIcon className="btn"/>
+                        <ChatIcon className="btn" />
+                        <PaperAirplaneIcon className="btn" />
+                    </div>
+                    <BookmarkIcon className="btn" />
                 </div>
-                <BookmarkIcon className="btn" />
-            </div>
+            )}
 
             {/* Caption */}
             <p className="p-5 truncate">
@@ -40,13 +65,23 @@ function Post({id, username, userImg, img, captions}) {
             {/* Comments */}
 
             {/* Input box */}
-            
-            <form className="flex items-center p-4">
-                <EmojiHappyIcon className="h-7"/>
-                <input type="text" 
-                placeholder="Add a comments ..." className="border-none flex-1 focus:ring-0 outline-none " />
-                <button className="font=semibold text-blue-400">Post</button>
-            </form>
+            {session && (
+                <form className="flex items-center p-4">
+                    <EmojiHappyIcon className="h-7"/>
+                    <input type="text" 
+                    placeholder="Add a comments ..." 
+                    className="border-none flex-1 focus:ring-0 outline-none "
+                    value={comment}
+                    onChange={(e) => setComment(e.target.value)}
+                    />
+                    <button 
+                    type="submit"
+                    disabled={!comment.trim()}
+                    className="font=semibold text-blue-400"
+                    onClick={sendComment} 
+                    >Post</button>
+                </form>
+            )}
             
         </div>
     )
