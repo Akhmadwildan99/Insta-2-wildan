@@ -10,4 +10,8 @@
     .btn {
         @apply h-7 hover:scale-125 cursor-pointer transition-all duration-150 ease-out
     }
+
+    .btnModal {
+        @apply h-6 mx-1 md:hidden cursor-pointer hover:scale-125 transition-all duration-75 ease-out;
+    }
 }

@@ -11,7 +11,8 @@ import {
 import {useSession, signIn, signOut} from 'next-auth/react';
 import {useRouter} from 'next/router';
 import {useRecoilState} from 'recoil';
-import {modalState} from '../atoms/modalAtoms'
+import {modalState} from '../atoms/modalAtoms';
+import {Menu} from '@headlessui/react';
 
 function Header() {
     const {data: session} = useSession();
@@ -53,7 +54,28 @@ function Header() {
 
                 <div className="flex items-center justify-end">
                     <HomeIcon onClick={()=> router.push('/')} className=" navBtn " />
-                    <MenuIcon className="h-6 md:hidden cursor-pointer  " />
+                    <Menu as="div" className="h-10 md:hhidden">
+                        <Menu.Button className="">
+                             <MenuIcon className="h-12 w-12 md:hidden cursor-pointer  " />
+                        </Menu.Button>
+                        {session && (
+                            <Menu.Items className="absolute right-0 w-full mt-2 origin-top-right bg-white divide-y divide-gray-100 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                                <Menu.Item className="h-10 w-full my-2 btnModal ">
+                                    <PlusCircleIcon onClick={() => setOpen(true)} className="btnModal" />
+                                </Menu.Item>
+                                <Menu.Item className="h-10 w-full my-2 btnModal">
+                                    <UserGroupIcon className="btnModal" />
+                                </Menu.Item>
+                                <Menu.Item className="relative h-10 w-full my-2 btnModal">
+                                    <PaperAirplaneIcon className=" btnModal rotate-45" /> 
+                                </Menu.Item>
+                                <Menu.Item className="h-10 w-full my-2 btnModal">
+                                    <HeartIcon className="btnModal" />
+                                </Menu.Item>
+                            </Menu.Items>
+                        )}
+                    </Menu>
+                   
 
                     {session ? (
                     <>
